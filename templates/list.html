@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    {% load bootstrap4 %}
-    {% load render_table from django_tables2 %}
-    {% bootstrap_css %} {# Embed Bootstrap CSS #}
-    {% bootstrap_javascript jquery='full' %} {# Embed Bootstrap JS+jQuery #}
-    <title>{{ title }}</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load bootstrap4 django_tables2 crispy_forms_tags %}
+{% block content%}
     <h2 class="text-center">{{ title }}</h2>
     <hr>
     <br/><br/>
@@ -18,6 +10,4 @@
         <br/><br/>
         {% render_table object_table %}
     </div>
-
-</body>
-</html>
+{% endblock %}

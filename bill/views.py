@@ -10,6 +10,8 @@ from django.views.generic import CreateView, UpdateView, DeleteView, DetailView,
 from django_tables2 import SingleTableView
 from django_tables2.config import RequestConfig
 from django import forms
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 
 from bill.jcharts import JourChart, CategorieChart
 from bill.models import Facture, Client, LigneFacture, Fournisseur
@@ -30,6 +32,17 @@ class FactureUpdate(UpdateView):
     model = Facture
     fields = ['client', 'date']
     template_name = 'update.html'
+
+    success_message = "La facture a été mise à jour avec succès"
+
+    def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier la facture")
+        form = super().get_form(form_class)
+        form.helper = FormHelper()
+        form.helper.add_input(Submit('submit', 'Modifier', css_class='btn-warning'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-secondary', onclick="window.history.back()"))
+        self.success_url = reverse('facture_table_detail', kwargs={'pk': self.kwargs.get('pk')})
+        return form
 
     def get_context_data(self, **kwargs):
         context = super(FactureUpdate, self).get_context_data(**kwargs)
