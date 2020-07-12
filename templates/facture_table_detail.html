@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load bootstrap4 django_tables2 %}
+	{% bootstrap_css %}         {# Embed Bootstrap CSS #}
+	{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
+  </head>
+  <body>
+  <h2 class="text-center">Facture N° {{ facture.id }}</h2>
+  <p class="text-center"> Client: {{ facture.client }} </p>
+  <br><br>
+    <hr>
+
+    <div class="container">
+  <!-- on affiche un bouton pour ajouter une ligne facture -->
+      <a href="{% url 'facture_table_create' facture_pk=facture.id %}" class="btn btn-primary">Ajouter Ligne</a>
+      <br><br>
+      <!-- on affiche les lignes de la facture -->
+        {% render_table table %}
+    </div>
+  </body>
+</html>

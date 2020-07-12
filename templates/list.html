@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load bootstrap4 %}
+    {% load render_table from django_tables2 %}
+    {% bootstrap_css %} {# Embed Bootstrap CSS #}
+    {% bootstrap_javascript jquery='full' %} {# Embed Bootstrap JS+jQuery #}
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h2 class="text-center">{{ title }}</h2>
+    <hr>
+    <br/><br/>
+
+    <div class="container">
+      <a href= "{{ ajouter_url }}" class="btn btn-info">{{ option }}</a>
+        <br/><br/>
+        {% render_table object_table %}
+    </div>
+
+</body>
+</html>

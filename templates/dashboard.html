@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+{% load render_table from django_tables2 %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body>
+      <div class="container-fluid">
+            <h1 class="text-center">Dashboard</h1>
+          <hr/>
+          <div class="row p-5">
+              <div class="container">
+                  <div class="row">
+                      <div class="col-md-6 px-2">
+                          <h2>Chiffre d' affaire</h2>
+                          <div class="row p-3">
+                              <div class="row ml-2">
+                                 <h3>Par client:</h3>
+                              </div>
+                              <div class="row p-3">
+                                  {% render_table table_client %}
+                              </div>
+                          </div>
+                          <div class="row p-3">
+                              <div class="row ml-2">
+                                 <h3>Par fournisseur:</h3>
+                              </div>
+                              <div class="row p-3">
+                                  {% render_table table_fournisseur %}
+                              </div>
+                          </div>
+                      </div>
+                      <div class="col-md-6 px-2">
+                          <h2>Evolution du Chiffre d'affaire</h2>
+                          <div class="row p-3">
+                              <div class="col-md-12 mt-3">
+                                 <h3>Par Jour:</h3>
+                              </div>
+                              <div class="col-md-12">
+                                  {{ chart_jour.as_html }}
+                              </div>
+                          </div>
+                          <div class="row p-3 mt-4">
+                              <div class="col-md-12">
+                                 <h3>Par categorie:</h3>
+                                  <br>
+                              </div>
+                              <div class="col-md-12">
+                                  {{ chart_categorie.as_html }}
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+</body>
+</html>
