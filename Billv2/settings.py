@@ -31,25 +31,21 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'bill.apps.BillConfig',
+    'crispy_forms',
+    'bootstrap4',
+    'django_tables2',
+    'bootstrap_datepicker_plus',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bill.apps.BillConfig',
-    'django_tables2',
-    'bootstrap4',
-    'crispy_forms',
-    'bootstrap_datepicker_plus',
     'jchart',
 ]
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-BOOTSTRAP4 = {
-    'include_jquery': True,
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -131,3 +127,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+BOOTSTRAP4 = {
+    'include_jquery': True,
+}
+
+AUTH_USER_MODEL= 'bill.UserInstallment'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')

@@ -3,8 +3,9 @@ from turtle import onclick
 from bootstrap_datepicker_plus import DatePickerInput
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Button, HTML
+from django.contrib.auth import authenticate, login
 from django.db.models import ExpressionWrapper, F, FloatField, fields, Sum
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, TemplateView
 from django_tables2 import SingleTableView
@@ -13,8 +14,9 @@ from django import forms
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 
+from bill.forms import SignUpForm
 from bill.jcharts import JourChart, CategorieChart
-from bill.models import Facture, Client, LigneFacture, Fournisseur
+from bill.models import Facture, Client, LigneFacture, Fournisseur, Produit, Role
 
 # Create your views here.
 from bill.table import FactureTable, ClientTable, LigneFactureTable, FournisseurTable, ChiffreFournisseurTab, \
@@ -336,3 +338,71 @@ class DashboardView(TemplateView):
         context['chart_jour'] = JourChart()
         context['chart_categorie'] = CategorieChart()
         return context
+
+
+# def signup(request):
+#     if request.method == 'POST':
+#         form = forms.CustomUserCreationForm(request.POST)
+#         profile_form = forms.UserProfileCreationForm(request.POST)
+#         if form.is_valid() and profile_form.is_valid():
+#             user = form.save()
+#             # save role field
+#             form.save_m2m()
+#             user_profile = profile_form.save(commit=False)
+#             user_profile.user = user
+#             user_profile.save()
+#             username = form.cleaned_data.get('username')
+#             raw_password = form.cleaned_data.get('password1')
+#             user = authenticate(username=username, password=raw_password)
+#             login(request, user)
+#             print(user.roles.all())
+#             print(Role.Client)
+#             if Role.Client in user.roles.values_list('id', flat=True):
+#                 Client.objects.create(user=user)
+#             if Role.Fournisseur in user.roles.values_list('id', flat=True):
+#                 Fournisseur.objects.create(user=user)
+#
+#             return redirect('user-profile')
+#         else:
+#             messages.error(request, 'Please correct the error below.')
+#     else:
+#         form = forms.CustomUserCreationForm()
+#         profile_form = forms.UserProfileCreationForm()
+#     return render(request, 'registration/signup.html', {'form': form, 'profile_form': profile_form})
+
+
+def home(request):
+    context = {
+        'produits': Produit.objects.all()
+    }
+    return render(request, 'index.html', context)
+
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            print("dakhal post")
+            user = form.save()
+            user.refresh_from_db()  # load the profile instance created by the signal
+            user.profile.adresse = form.cleaned_data.get('adresse')
+            user.profile.tel = form.cleaned_data.get('tel')
+            user.profile.sexe = form.cleaned_data.get('sexe')
+            user.save()
+            #user.save_m2m()
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=user.username, password=raw_password)
+            login(request, user)
+
+            if Role.Client in user.roles.values_list('id', flat=True):
+                Client.objects.create(user=user)
+            if Role.Fournisseur in user.roles.values_list('id', flat=True):
+                Fournisseur.objects.create(user=user)
+                print("dakhal if fournisseur")
+            return redirect('home')
+        else:
+            print("dakhal error")
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = SignUpForm()
+    return render(request, 'registration/signup.html', {'form': form})

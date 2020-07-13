@@ -1,32 +1,68 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django import utils
 
 # Create your models here.
-from django.db.models import ExpressionWrapper, FloatField, F
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.urls import reverse
 
 
-class Client(models.Model):
+class Role(models.Model):
+    ADMIN = 1
+    Fournisseur = 2
+    Client = 3
+
+    ROLE_CHOICES = (
+        (Client, 'client'),
+        (Fournisseur, 'fournisseur'),
+        (ADMIN, 'admin'),
+    )
+
+    id = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, primary_key=True)
+
+    def __str__(self):
+        return self.get_id_display()
+
+
+class UserInstallment(AbstractUser):
+    roles = models.ManyToManyField(Role)
+
+
+class Profile(models.Model):
     SEXE = (
         ('M', 'Masculin'),
         ('F', 'Feminin')
     )
-    nom = models.CharField(max_length=50, null=True, blank=True)
-    prenom = models.CharField(max_length=50, null=True, blank=True)
-    adresse = models.TextField(max_length=70,null=True, blank=True)
+    user = models.OneToOneField(UserInstallment, on_delete=models.CASCADE, related_name="profile", null=True)
+    adresse = models.TextField(null=True, blank=True)
     tel = models.CharField(max_length=10, null=True, blank=True)
     sexe = models.CharField(max_length=1, choices=SEXE)
 
+    @receiver(post_save, sender=UserInstallment)
+    def update_user_profile(sender, instance, created, **kwargs):
+        if created:
+            print("dakhal if created")
+            print(instance)
+            Profile.objects.create(user=instance)
+        instance.profile.save()
+
     def __str__(self):
-        return self.nom + ' ' + self.prenom
+        return str(self.user)
+
+
+class Client(models.Model):
+    user = models.OneToOneField(UserInstallment, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return self.user.username
 
 
 class Fournisseur(models.Model):
-    nom = models.CharField(max_length=50, null=True, blank=True)
-    prenom = models.CharField(max_length=50, null=True, blank=True)
+    user = models.OneToOneField(UserInstallment, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.nom + ' ' + self.prenom
+        return  self.user.username
 
 
 class Categorie(models.Model):
@@ -66,4 +102,3 @@ class LigneFacture(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['produit', 'facture'], name="produit-facture")
         ]
-
