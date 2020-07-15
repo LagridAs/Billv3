@@ -21,9 +21,8 @@ from django.views.generic import TemplateView
 from Billv2 import settings
 from bill import views
 from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
-                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient
+                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient,LoginView, LogoutView
 
-from bill.views import ClientList, CreateClient, EditClient, DeleteClient, FactureList, LoginView, LogoutView
 
 
 urlpatterns = [

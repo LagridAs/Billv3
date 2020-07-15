@@ -20,11 +20,9 @@ from django.contrib.messages.views import SuccessMessageMixin
 from bill.filter import ClientFilter, FournisseurFilter
 from bill.forms import SignUpForm
 from bill.jcharts import JourChart, CategorieChart
-<<<<<<< HEAD
-from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Panier,Produit,Categorie
-=======
-from bill.models import Facture, Client, LigneFacture, Fournisseur, Produit, Role
->>>>>>> ef38f66b4d512249396eaec9e5943c82c3d73805
+
+from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Panier,Produit,Categorie, Role
+
 
 # Create your views here.
 from bill.table import FactureTable, ClientTable, CommandeTable,PanierTable, LigneFactureTable, FournisseurTable, ChiffreFournisseurTab, \
