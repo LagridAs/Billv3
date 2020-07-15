@@ -1,16 +1,21 @@
 <ul class="nav list-group">
 	<li>
-    	<a class="list-group-item" href="#">Clients</a>
+    	<a class="list-group-item" href="{% url 'client_list' %}">Clients</a>
 	</li>
 	<li>
-    	<a class="list-group-item" href="#">Produits</a>
+    	<a class="list-group-item" href="{% url 'produit_list' %}">Produits</a>
 	</li>
-	<li class="list-group-item">
-	  <a class="dropdown-toggle" data-toggle="dropdown" href="#">Facturation</a>
-	  <div class="dropdown-menu">
-	    <a class="dropdown-item" href="#">Nouvelle Facture</a>
-	    <a class="dropdown-item" href="#">Modifier Facture</a>
-	    <a class="dropdown-item" href="#">Supprimer Facture</a>
-	  </div>
+	<li>
+		<a class="list-group-item"  href="{% url 'commande_list' %}">Commandes</a>
 	</li>
+	<li>
+		<a class="list-group-item"  href="{% url 'facture_list' %}">Facturation</a>
+	</li>
+	<li>
+    	<a class="list-group-item" href="{% url 'fournisseur_list' %}">Fournisseurs</a>
+	</li>
+	<li>
+    	<a class="list-group-item" href="{% url 'dashboard' %}">dashboard</a>
+	</li>
+	
 </ul>

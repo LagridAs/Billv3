@@ -14,11 +14,11 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 
 from bill.jcharts import JourChart, CategorieChart
-from bill.models import Facture, Client, LigneFacture, Fournisseur
+from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Panier,Produit,Categorie
 
 # Create your views here.
-from bill.table import FactureTable, ClientTable, LigneFactureTable, FournisseurTable, ChiffreFournisseurTab, \
-    ChiffreClientTab
+from bill.table import FactureTable, ClientTable, CommandeTable,PanierTable, LigneFactureTable, FournisseurTable, ChiffreFournisseurTab, \
+    ChiffreClientTab,ProduitTable
 
 
 def facture_detail_view(request, pk):
@@ -58,7 +58,7 @@ class FactureDetailView(DetailView):
         context = super(FactureDetailView, self).get_context_data(**kwargs)
 
         table = LigneFactureTable(LigneFacture.objects.filter(facture=self.kwargs.get('pk')))
-        RequestConfig(self.request, paginate={"per_page": 2}).configure(table)
+        RequestConfig(self.request, paginate={"per_page": 5}).configure(table)
         context['table'] = table
         return context
 
@@ -134,7 +134,7 @@ class ClientList(SingleTableView):
             )
         ))
         context['object_table'] = self.table_class(context["object_list"])
-        context['title'] = "List des clients"
+        context['title'] = "Liste des clients"
         context['option'] = "Ajouter Client"
         context['ajouter_url'] = reverse('client_create')
         context['object_name'] = "Client"
@@ -194,14 +194,83 @@ class DeleteClient(DeleteView):
         return context
 
 
+class ProduitList(SingleTableView):
+    model = Produit
+    table_class = ProduitTable
+    template_name = 'list.html'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_list"] = self.model.objects.all()
+        context['object_table'] = self.table_class(context["object_list"])
+        context['title'] = "Liste des produits"
+        context['option'] = "Ajouter produit"
+        context['ajouter_url'] = reverse('produit_create')
+        context['object_name'] = "Produit"
+        return context
+
+class CreateProduit(CreateView):
+    model = Produit
+    template_name = 'create.html'
+    fields = ['designation','prix','fournis']
+
+    def get_form(self, form_class=None):
+        form = super(CreateProduit, self).get_form(form_class)
+        form.helper = FormHelper()
+        form.fields['fournis'] = forms.ModelChoiceField(queryset= Fournisseur.objects,initial=0)
+        #form.fields['categorie'] = forms.ModelChoiceField(queryset=Categorie.objects, initial=0)
+        form.helper.add_input(Submit('submit', 'Creer', css_class='btn btn-success'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-primary',
+                                     onclick="window.location.href = '{}';".format(reverse('produit_list'))))
+        self.success_url = reverse('produit_list')
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(CreateProduit, self).get_context_data(**kwargs)
+        context['title'] = 'Ajouter produit'
+        return context
+
+class EditProduit(UpdateView):
+    model = Produit
+    template_name = 'update.html'
+    fields = ['designation','prix','fournis']
+
+    def get_form(self, form_class=None):
+        form = super(EditProduit, self).get_form(form_class)
+        form.helper = FormHelper()
+        form.fields['fournis'] = forms.ModelChoiceField(queryset= Fournisseur.objects,initial=self.kwargs.get('fournis'))
+        form.helper.add_input(Submit('submit', 'Enregister', css_class='btn btn-success'))
+        form.helper.add_input(Button('Cancel', 'Annuler', css_class='btn-primary',
+                                     onclick="window.location.href = '{}';".format(reverse('produit_list'))))
+        self.success_url = reverse('produit_list')
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(EditProduit, self).get_context_data(**kwargs)
+        context['title'] = 'Modifier produit'
+        return context
+
+
+class DeleteProduit(DeleteView):
+    model = Produit
+    template_name = 'delete.html'
+
+    def get_success_url(self):
+        return reverse('produit_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(DeleteProduit, self).get_context_data(**kwargs)
+        context['title'] = 'Supprimer Produit'
+        return context
+
 class FactureList(SingleTableView):
     model = Facture
     template_name = 'list.html'
     table_class = FactureTable
 
     def get_context_data(self, **kwargs):
-        context = super(FactureList, self).get_context_data(**kwargs)
-        context['object_list'] = self.model.objects.filter(client__id=self.kwargs.get('pk')).annotate(total=Sum(
+        context = super().get_context_data(**kwargs)
+        context['object_list'] = self.model.objects.all().annotate(total=Sum(
             ExpressionWrapper(
                 F('lignes__qte') * F('lignes__produit__prix'),
                 output_field=fields.FloatField()
@@ -209,9 +278,32 @@ class FactureList(SingleTableView):
         ))
         context['object_table'] = self.table_class(context['object_list'])
         context['title'] = 'Liste des factures'
-        context['ajouter_url'] = reverse('facture_create', kwargs={'pk': self.kwargs.get('pk')})
+        context['ajouter_url'] = reverse('facture_create')
         context['option'] = 'Ajouter facture'
+        context['object_name'] = "Facture"
         return context
+
+class FactureListClient(SingleTableView):
+    model = Facture
+    template_name = 'list.html'
+    table_class = FactureTable
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object_list'] = self.model.objects.filter(client_id = self.kwargs.get('pk')).annotate(total=Sum(
+            ExpressionWrapper(
+                F('lignes__qte') * F('lignes__produit__prix'),
+                output_field=fields.FloatField()
+            )
+        ))
+        context['object_table'] = self.table_class(context['object_list'])
+        context['title'] = 'Liste des factures'
+        context['ajouter_url'] = reverse('facture_create')
+        context['option'] = 'Ajouter facture'
+        context['object_name'] = "Facture"
+        return context
+
+ 
 
 
 class FactureCreate(CreateView):
@@ -235,6 +327,29 @@ class FactureCreate(CreateView):
         context = super(FactureCreate, self).get_context_data(**kwargs)
         context['title'] = 'Ajouter facture'
         return context
+
+class CreateFacture(CreateView):
+    model = Facture
+    template_name = 'create.html'
+    fields = ['client', 'date']
+
+    def get_form(self, form_class=None):
+        form = super(CreateFacture, self).get_form(form_class)
+        form.helper = FormHelper()
+        form.fields['date'] = forms.DateTimeField(widget=DatePickerInput(format='%m/%d/%Y'))
+        form.fields['client'] = forms.ModelChoiceField(
+            queryset=Client.objects, initial=0)
+        form.helper.add_input(Submit('submit', 'Creer', css_class='btn btn-success'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-primary',
+                                     onclick="window.location.href = '{}';".format(reverse('facture_list'))))
+        self.success_url = reverse('facture_list')
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(CreateFacture, self).get_context_data(**kwargs)
+        context['title'] = 'Ajouter facture'
+        return context
+
 
 
 class FournisseurList(SingleTableView):
@@ -335,4 +450,186 @@ class DashboardView(TemplateView):
         print(context['list_client'])
         context['chart_jour'] = JourChart()
         context['chart_categorie'] = CategorieChart()
+        return context
+
+
+
+
+
+class CommandeDetailView(DetailView):
+    template_name = 'commande_table_detail.html'
+    model = Commande
+    
+    def get_context_data(self, **kwargs):
+        context = super(CommandeDetailView, self).get_context_data(**kwargs)
+
+        table = PanierTable(Panier.objects.filter(commande=self.kwargs.get('pk')))
+        RequestConfig(self.request, paginate={"per_page": 5}).configure(table)
+        context['table'] = table
+        #context['object'] = 'Panier'
+        #context['title'] = 'Les produits de la commande : ' + str(self.get_object())
+
+        return context
+
+
+
+class CommandeList(SingleTableView):
+    model = Commande
+    template_name = 'list.html'
+    table_class = CommandeTable
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeList, self).get_context_data(**kwargs)
+        context['object_list'] = self.model.objects.all().annotate(total=Sum(
+            ExpressionWrapper(
+                F('paniers__qte') * F('paniers__produit__prix'),
+                output_field=fields.FloatField()
+            )
+        ))
+        context['object_table'] = self.table_class(context['object_list'])
+        context['title'] = 'Liste des commandes'
+        context['ajouter_url'] = reverse('commande_create')
+        context['option'] = 'Ajouter commande'
+        return context
+
+class CommandeListClient(SingleTableView):
+    model = Commande
+    template_name = 'list.html'
+    table_class = CommandeTable
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeListClient, self).get_context_data(**kwargs)
+        context['object_list'] = self.model.objects.filter(client_id = self.kwargs.get('pk')).annotate(total=Sum(
+            ExpressionWrapper(
+                F('paniers__qte') * F('paniers__produit__prix'),
+                output_field=fields.FloatField()
+            )
+        ))
+        context['object_table'] = self.table_class(context['object_list'])
+        context['title'] = 'Liste des commandes'
+        context['ajouter_url'] = reverse('commande_create')
+        context['option'] = 'Ajouter commande'
+        return context
+
+
+class CommandeCreate(CreateView):
+    model = Commande
+    template_name = 'create.html'
+    fields = ['client']
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.helper = FormHelper()
+        #form.fields['date'] = forms.DateTimeField(widget=DatePickerInput(format='%m/%d/%Y'))
+        form.fields['client'] = forms.ModelChoiceField(
+            queryset=Client.objects.filter(id=self.kwargs.get('pk')), initial=0)
+        form.helper.add_input(Submit('submit', 'Créer', css_class='btn-primary'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-secondary', onclick="window.history.back()"))
+        print(self.kwargs.get('pk'))
+        self.success_url = reverse('commande_list', kwargs={'pk': self.kwargs.get('pk')})
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeCreate, self).get_context_data(**kwargs)
+        context['title'] = 'Ajouter commande'
+        return context
+
+
+class CreateCommande(CreateView):
+    model = Commande
+    template_name = 'create.html'
+    fields = ['client']
+
+    def get_form(self, form_class=None):
+        form = super(CreateCommande, self).get_form(form_class)
+        form.helper = FormHelper()
+        #form.fields['date'] = forms.DateTimeField(widget=DatePickerInput(format='%m/%d/%Y'))
+        form.fields['client'] = forms.ModelChoiceField(
+            queryset=Client.objects, initial=0)
+        form.helper.add_input(Submit('submit', 'Creer', css_class='btn btn-success'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-primary',
+                                     onclick="window.location.href = '{}';".format(reverse('commande_list'))))
+        self.success_url = reverse('commande_list')
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(CreateCommande, self).get_context_data(**kwargs)
+        context['title'] = 'Ajouter une commande'
+        return context
+
+
+class PanierCreateView(CreateView):
+    model = Panier
+    template_name = 'create.html'
+    fields = ['commande', 'produit', 'qte']
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.helper = FormHelper()
+
+        form.fields['commande'] = forms.ModelChoiceField(
+            queryset=Commande.objects.filter(id=self.kwargs.get('commande_pk')), initial=0)
+        form.helper.add_input(Submit('submit', 'Créer', css_class='btn-primary'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-secondary', onclick="window.history.back()"))
+        self.success_url = reverse('commande_table_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(PanierCreateView, self).get_context_data(**kwargs)
+        context['title'] = 'Ajouter Panier'
+        return context
+
+class CommandeUpdate(UpdateView):
+    model = Commande
+    fields = ['client']
+    template_name = 'update.html'
+
+    success_message = "La commande a été mise à jour avec succès"
+
+    def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier la commande")
+        form = super().get_form(form_class)
+        form.helper = FormHelper()
+        form.helper.add_input(Submit('submit', 'Modifier', css_class='btn-warning'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-secondary', onclick="window.history.back()"))
+        self.success_url = reverse('commande_table_detail', kwargs={'pk': self.kwargs.get('pk')})
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeUpdate, self).get_context_data(**kwargs)
+        context['title'] = 'Modifier commande'
+        return context
+
+
+class PanierUpdateView(UpdateView):
+    model = Panier
+    template_name = 'update.html'
+    fields = ['commande', 'produit', 'qte']
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.helper = FormHelper()
+
+        form.fields['commande'] = forms.ModelChoiceField(
+            queryset=Commande.objects.filter(id=self.kwargs.get('commande_pk')), initial=0)
+        form.helper.add_input(Submit('submit', 'Modifier', css_class='btn-primary'))
+        form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-secondary', onclick="window.history.back()"))
+        self.success_url = reverse('commande_table_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(PanierUpdateView, self).get_context_data(**kwargs)
+        context['title'] = 'Modifier panier de commande'
+        return context
+
+class PanierDeleteView(DeleteView):
+    model = Panier
+    template_name = 'delete.html'
+
+    def get_success_url(self):
+        return reverse('commande_table_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
+
+    def get_context_data(self, **kwargs):
+        context = super(PanierDeleteView, self).get_context_data(**kwargs)
+        context['title'] = 'Supprimer Panier'
         return context

@@ -17,7 +17,8 @@ from django.contrib import admin
 from django.urls import path, re_path
 
 from bill import views
-from bill.views import ClientList, CreateClient, EditClient, DeleteClient, FactureList
+from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
+                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient
 
 
 urlpatterns = [
@@ -27,7 +28,13 @@ urlpatterns = [
     re_path(r'^client_create/$', CreateClient.as_view(), name='client_create'),
     re_path(r'^client_edit/(?P<pk>\d+)/$', EditClient.as_view(), name='client_edit'),
     re_path(r'^client_delete/(?P<pk>\d+)/$', DeleteClient.as_view(), name='client_delete'),
-    re_path(r'^facture_list/(?P<pk>\d+)/$', FactureList.as_view(), name='facture_list'),
+     re_path(r'^produit_list/$', ProduitList.as_view(), name='produit_list'),
+     re_path(r'^produit_create/$', CreateProduit.as_view(), name='produit_create'),
+     re_path(r'^produit_edit/(?P<pk>\d+)/$', EditProduit.as_view(), name='produit_edit'),
+     re_path(r'^produit_delete/(?P<pk>\d+)/$', DeleteProduit.as_view(), name='produit_delete'),
+    re_path(r'^facture_list/$', FactureList.as_view(), name='facture_list'),
+    re_path(r'^facture_list/(?P<pk>\d+)/$', FactureListClient.as_view(), name='facture_list'),
+    re_path(r'^facture_create/$', CreateFacture.as_view(), name='facture_create'),
     re_path(r'^facture_table_detail/(?P<pk>\d+)/$', views.FactureDetailView.as_view(), name='facture_table_detail'),
     re_path(r'^facture_table_create/(?P<facture_pk>\d+)/$', views.LigneFactureCreateView.as_view(),
             name='facture_table_create'),
@@ -37,6 +44,18 @@ urlpatterns = [
             name='lignefacture_update'),
     re_path(r'^facture_update/(?P<pk>\d+)/$', views.FactureUpdate.as_view(), name='facture_update'),
     re_path(r'^facture_create/(?P<pk>\d+)/$', views.FactureCreate.as_view(), name='facture_create'),
+    re_path(r'^commande_list/$', CommandeList.as_view(), name='commande_list'),
+    re_path(r'^commande_list/(?P<pk>\d+)$', CommandeListClient.as_view(), name='commande_list'),
+    #re_path(r'^commande_list_confirmees/$', CommandeListConfirme.as_view(), name='commande_list_confirmees'),
+    re_path(r'^commande_create/$', CreateCommande.as_view(), name='commande_create'),
+    re_path(r'^commande_table_detail/(?P<pk>\d+)/$', views.CommandeDetailView.as_view(), name='commande_table_detail'),
+    re_path(r'^commande_table_create/(?P<commande_pk>\d+)/$', views.PanierCreateView.as_view(),
+            name='commande_table_create'),
+    re_path(r'^commande_update/(?P<pk>\d+)/$', views.CommandeUpdate.as_view(), name='commande_update'),
+    re_path(r'^panier_update/(?P<pk>\d+)/(?P<commande_pk>\d+)/$', views.PanierUpdateView.as_view(),
+            name='panier_update'),
+    re_path(r'^panier_delete/(?P<pk>\d+)/(?P<commande_pk>\d+)/$', views.PanierDeleteView.as_view(),
+            name='panier_delete'),
     re_path(r'^fournisseur_list/$', views.FournisseurList.as_view(), name='fournisseur_list'),
     re_path(r'^fournisseur_create/$', views.CreateFournisseur.as_view(), name='fournisseur_create'),
     re_path(r'^fournisseur_edit/(?P<pk>\d+)/$',views.EditFournisseur.as_view(), name='fournisseur_edit'),
