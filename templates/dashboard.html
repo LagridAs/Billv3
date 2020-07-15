@@ -1,16 +1,6 @@
-<!DOCTYPE html>
-{% load bootstrap4 %}
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
-{% load render_table from django_tables2 %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load bootstrap4 django_tables2 crispy_forms_tags %}
+{% block content%}
       <div class="container-fluid">
             <h1 class="text-center">Dashboard</h1>
           <hr/>
@@ -60,5 +50,4 @@
               </div>
           </div>
       </div>
-</body>
-</html>
+{% endblock %}

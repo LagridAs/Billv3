@@ -13,15 +13,28 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path, re_path, include
+from django.views.generic import TemplateView
 
+from Billv2 import settings
 from bill import views
 from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
                          CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient
 
+from bill.views import ClientList, CreateClient, EditClient, DeleteClient, FactureList, LoginView, LogoutView
+
 
 urlpatterns = [
+    path('', views.home, name="home"),
+    path("select2/", include("django_select2.urls")),
+    path('accounts/register/', views.signup, name="signup"),
+    path('accounts/login/', LoginView.as_view(), name="login"),
+    path('accounts/logout/', LogoutView.as_view(), name="logout"),
+    path('accounts/', include('django.contrib.auth.urls')),
+    #re_path(r'^accounts/login/$', LoginView.as_view(), name='login'),
+    #re_path(r'^accounts/logout/$', LogoutView.as_view(), name='logout'),
     path('admin/', admin.site.urls),
     re_path(r'^facture_detail/(?P<pk>\d+)/$', views.facture_detail_view, name='facture_detail'),
     re_path(r'^client_list/$', ClientList.as_view(), name='client_list'),
@@ -62,3 +75,7 @@ urlpatterns = [
     re_path(r'^fournisseur_delete/(?P<pk>\d+)/$', views.DeleteFournisseur.as_view(), name='fournisseur_delete'),
     re_path(r'^dashboard/$', views.DashboardView.as_view(), name='dashboard'),
 ]
+
+
+if settings.DEBUG is True:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

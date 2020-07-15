@@ -4,15 +4,14 @@ from bill.models import Client, Facture, LigneFacture, Fournisseur, Commande, Pa
 
 
 class ClientTable(tables.Table):
-    T1 = '<a href="{% url "client_edit" record.id %}" class="btn btn-success">Edit</a>' \
-         '<span> </span> <a href="{% url "client_delete" record.id %}" class="btn btn-danger">Delete</a>' \
+    T1 = '<span> </span> <a href="{% url "client_delete" record.id %}" class="btn btn-danger">Delete</a>' \
          '<span> </span> <a href="{% url "facture_list" pk=record.id %}" class="btn btn-info">Facture</a>'
     edit = tables.TemplateColumn(T1)
 
     class Meta:
         model = Client
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "nom", "prenom", "adresse", "tel", "sexe", "chiffre_affaire")
+        fields = ("id", "user__last_name", "user__first_name", "user__profile__adresse", "user__profile__tel", "user__profile__sexe", "chiffre_affaire")
 
 
 class FactureTable(tables.Table):
@@ -37,14 +36,13 @@ class LigneFactureTable(tables.Table):
 
 
 class FournisseurTable(tables.Table):
-    T1 = '<a href="{% url "fournisseur_edit" record.id %}" class="btn btn-success">Modifier</a>' \
-         '<span> </span> <a href="{% url "fournisseur_delete" record.id %}" class="btn btn-danger">Supprimer</a>'
+    T1 = '<span> </span> <a href="{% url "fournisseur_delete" record.id %}" class="btn btn-danger">Supprimer</a>'
     edit = tables.TemplateColumn(T1)
 
     class Meta:
         model = Fournisseur
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "nom", "prenom")
+        fields = ("id", "user__last_name", "user__first_name")
 
 
 class ProduitTable(tables.Table):
@@ -62,15 +60,15 @@ class ChiffreFournisseurTab(tables.Table):
     class Meta:
         model = Facture
         template_name = "django_tables2/bootstrap.html"
-        fields = ("lignes__produit__fournis","lignes__produit__fournis__nom",
-                  "lignes__produit__fournis__prenom","chiffre_affaire")
+        fields = ("lignes__produit__fournis","lignes__produit__fournis__user__last_name",
+                "lignes__produit__fournis__user__first_name","chiffre_affaire")
 
 
 class ChiffreClientTab(tables.Table):
     class Meta:
         model = Facture
         template_name = "django_tables2/bootstrap.html"
-        fields = ("client","client__nom","client__prenom", "chiffre_affaire")
+        fields = ("client","client__user__last_name","client__user__first_name", "chiffre_affaire")
 
 
 class CommandeTable(tables.Table):
