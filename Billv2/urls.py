@@ -21,12 +21,12 @@ from django.views.generic import TemplateView
 from Billv2 import settings
 from bill import views
 from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
-                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient,LoginView, LogoutView,ValiderCommande
+                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient,LoginView, LogoutView,ValiderCommande,HomeView
 
 
 
 urlpatterns = [
-    path('', views.home, name="home"),
+    path('', HomeView.as_view(), name="home"),
     path("select2/", include("django_select2.urls")),
     path('accounts/register/', views.signup, name="signup"),
     path('accounts/login/', LoginView.as_view(), name="login"),

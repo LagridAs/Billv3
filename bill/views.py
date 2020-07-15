@@ -742,3 +742,10 @@ class LogoutView(TemplateView):
         logout(request)
 
         return render(request, self.template_name)
+
+class HomeView(TemplateView):
+    template_name = 'home.html'
+    def get(self, request, **kwargs):
+        logout(request)
+        return render(request, self.template_name)
+
