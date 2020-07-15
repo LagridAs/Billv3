@@ -21,7 +21,7 @@ from bill.filter import ClientFilter, FournisseurFilter
 from bill.forms import SignUpForm
 from bill.jcharts import JourChart, CategorieChart
 
-from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Panier,Produit,Categorie, Role
+from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Panier,Produit,Categorie, Role,UserInstallment
 
 
 # Create your views here.
@@ -223,7 +223,7 @@ class ProduitList(SingleTableView):
 class CreateProduit(CreateView):
     model = Produit
     template_name = 'create.html'
-    fields = ['designation','prix','fournis']
+    fields = ['designation','prix','fournis','photo']
 
     def get_form(self, form_class=None):
         form = super(CreateProduit, self).get_form(form_class)
@@ -244,7 +244,7 @@ class CreateProduit(CreateView):
 class EditProduit(UpdateView):
     model = Produit
     template_name = 'update.html'
-    fields = ['designation','prix','fournis']
+    fields = ['designation','prix','fournis','photo']
 
     def get_form(self, form_class=None):
         form = super(EditProduit, self).get_form(form_class)
@@ -655,7 +655,7 @@ class ValiderCommande(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super(ValiderCommande, self).get_context_data(**kwargs)
-        context['title'] = 'Valider'
+        context['title'] = 'Valider Commande'
         return context
 
 
@@ -734,6 +734,9 @@ class LoginView(TemplateView):
 
 class LogoutView(TemplateView):
     template_name = 'registration/logout.html'
+
+    def get_success_url(self):
+        return reverse('logout')
 
     def get(self, request, **kwargs):
         logout(request)

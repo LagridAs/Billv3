@@ -46,14 +46,20 @@ class FournisseurTable(tables.Table):
 
 
 class ProduitTable(tables.Table):
-    T1 = '<a href="{% url "produit_edit" record.id %}" class="btn btn-success">Modifier</a>' \
+    
+    T2 = '<img src="../media/{{record.photo}}" width="150px" height="100px" />'
+    photo = tables.TemplateColumn(T2)
+    T1 = '<p>{{record.prix}}</p>'
+    prix = tables.TemplateColumn(T1)
+    
+    T3 ='<a href="{% url "produit_edit" record.id %}" class="btn btn-success">Modifier</a>' \
          '<span> </span> <a href="{% url "produit_delete" record.id %}" class="btn btn-danger">Supprimer</a>'
-    edit = tables.TemplateColumn(T1)
+    edit = tables.TemplateColumn(T3)
 
     class Meta : 
         model = Produit
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "designation", "prix","fournis")
+        fields = ( "id","designation")
 
     
 class ChiffreFournisseurTab(tables.Table):
@@ -73,7 +79,7 @@ class ChiffreClientTab(tables.Table):
 
 class CommandeTable(tables.Table):
     T1 = '<a href="{% url "commande_table_detail" record.id %}" class="btn btn-primary">Details</a>' \
-            '<span> </span> <a href="{% url "commande_table_detail" record.id %}" class="btn btn-warning">Valider</a>'
+            '<span> </span> <a href="{% url "valider_commande" record.id %}" class="btn btn-warning">Valider</a>'
     details = tables.TemplateColumn(T1)
     
 
