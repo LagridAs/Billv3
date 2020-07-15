@@ -646,6 +646,19 @@ class PanierDeleteView(DeleteView):
         context['title'] = 'Supprimer Panier'
         return context
 
+class ValiderCommande(UpdateView):
+    model = Commande
+    template_name = 'valider.html'
+
+    def get_success_url(self):
+        return reverse('commande_table_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
+
+    def get_context_data(self, **kwargs):
+        context = super(ValiderCommande, self).get_context_data(**kwargs)
+        context['title'] = 'Valider'
+        return context
+
+
 def home(request):
     context = {
         'produits': Produit.objects.all()

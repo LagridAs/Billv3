@@ -21,7 +21,7 @@ from django.views.generic import TemplateView
 from Billv2 import settings
 from bill import views
 from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
-                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient,LoginView, LogoutView
+                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient,LoginView, LogoutView,ValiderCommande
 
 
 
@@ -61,6 +61,7 @@ urlpatterns = [
     #re_path(r'^commande_list_confirmees/$', CommandeListConfirme.as_view(), name='commande_list_confirmees'),
     re_path(r'^commande_create/$', CreateCommande.as_view(), name='commande_create'),
     re_path(r'^commande_table_detail/(?P<pk>\d+)/$', views.CommandeDetailView.as_view(), name='commande_table_detail'),
+    re_path(r'^valider_commande/(?P<pk>\d+)/$',ValiderCommande.as_view(),name='valider_commande'),
     re_path(r'^commande_table_create/(?P<commande_pk>\d+)/$', views.PanierCreateView.as_view(),
             name='commande_table_create'),
     re_path(r'^commande_update/(?P<pk>\d+)/$', views.CommandeUpdate.as_view(), name='commande_update'),
