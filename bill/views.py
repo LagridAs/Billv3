@@ -3,17 +3,21 @@ from turtle import onclick
 from bootstrap_datepicker_plus import DatePickerInput
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Button, HTML
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.db.models import ExpressionWrapper, F, FloatField, fields, Sum
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, TemplateView
-from django_tables2 import SingleTableView
+from django_filters.views import FilterView
+from django_tables2 import SingleTableView, SingleTableMixin
 from django_tables2.config import RequestConfig
 from django import forms
 from django.contrib import messages
+from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
 
+from bill.filter import ClientFilter, FournisseurFilter
 from bill.forms import SignUpForm
 from bill.jcharts import JourChart, CategorieChart
 from bill.models import Facture, Client, LigneFacture, Fournisseur, Produit, Role
@@ -122,14 +126,17 @@ class LigneFactureDeleteView(DeleteView):
         return context
 
 
-class ClientList(SingleTableView):
+class ClientList(SingleTableMixin,FilterView):
     model = Client
     table_class = ClientTable
     template_name = 'list.html'
+    filterset_class = ClientFilter
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["object_list"] = self.model.objects.all().annotate(chiffre_affaire=Sum(
+        data_filtred = ClientFilter(self.request.GET,queryset=self.model.objects.all())
+        data_filtredQs = data_filtred.qs
+        context["object_list"] = data_filtredQs.annotate(chiffre_affaire=Sum(
             ExpressionWrapper(
                 F('facture__lignes__qte') * F('facture__lignes__produit__prix'),
                 output_field=fields.FloatField()
@@ -146,7 +153,7 @@ class ClientList(SingleTableView):
 class CreateClient(CreateView):
     model = Client
     template_name = 'create.html'
-    fields = ['nom', 'prenom', 'adresse', 'tel', 'sexe']
+    fields = ['user']
 
     def get_form(self, form_class=None):
         form = super(CreateClient, self).get_form(form_class)
@@ -239,14 +246,17 @@ class FactureCreate(CreateView):
         return context
 
 
-class FournisseurList(SingleTableView):
+class FournisseurList(SingleTableMixin,FilterView):
     model = Fournisseur
     table_class = FournisseurTable
     template_name = 'list.html'
+    filterset_class = FournisseurFilter
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = self.model.objects.all()
+        data_filtred = FournisseurFilter(self.request.GET, queryset=self.model.objects.all())
+        data_filtredQs = data_filtred.qs
+        context['object_list'] = data_filtredQs
         context['object_table'] = self.table_class(context['object_list'])
         context['title'] = "List des Fournisseurs"
         context['option'] = "Ajouter Fournisseur"
@@ -258,7 +268,7 @@ class FournisseurList(SingleTableView):
 class CreateFournisseur(CreateView):
     model = Fournisseur
     template_name = 'create.html'
-    fields = ['nom', 'prenom']
+    fields = ['user']
 
     def get_form(self, form_class=None):
         form = super(CreateFournisseur, self).get_form(form_class)
@@ -315,8 +325,8 @@ class DashboardView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(DashboardView, self).get_context_data(**kwargs)
         context['list_fournisseur'] = self.model.objects.values('lignes__produit__fournis',
-                                                                'lignes__produit__fournis__nom',
-                                                                'lignes__produit__fournis__prenom').annotate(
+                                                                'lignes__produit__fournis__user__last_name',
+                                                                'lignes__produit__fournis__user__first_name').annotate(
             chiffre_affaire=Sum(
                 ExpressionWrapper(
                     F('lignes__qte') * F('lignes__produit__prix'),
@@ -325,7 +335,7 @@ class DashboardView(TemplateView):
             ))
         print(context['list_fournisseur'])
         context['table_fournisseur'] = ChiffreFournisseurTab(context['list_fournisseur'])
-        context['list_client'] = self.model.objects.all().values('client', 'client__nom', 'client__prenom').annotate(
+        context['list_client'] = self.model.objects.all().values('client', 'client__user__last_name', 'client__user__first_name').annotate(
             chiffre_affaire=Sum(
                 ExpressionWrapper(
                     F('lignes__qte') * F('lignes__produit__prix'),
@@ -338,37 +348,6 @@ class DashboardView(TemplateView):
         context['chart_jour'] = JourChart()
         context['chart_categorie'] = CategorieChart()
         return context
-
-
-# def signup(request):
-#     if request.method == 'POST':
-#         form = forms.CustomUserCreationForm(request.POST)
-#         profile_form = forms.UserProfileCreationForm(request.POST)
-#         if form.is_valid() and profile_form.is_valid():
-#             user = form.save()
-#             # save role field
-#             form.save_m2m()
-#             user_profile = profile_form.save(commit=False)
-#             user_profile.user = user
-#             user_profile.save()
-#             username = form.cleaned_data.get('username')
-#             raw_password = form.cleaned_data.get('password1')
-#             user = authenticate(username=username, password=raw_password)
-#             login(request, user)
-#             print(user.roles.all())
-#             print(Role.Client)
-#             if Role.Client in user.roles.values_list('id', flat=True):
-#                 Client.objects.create(user=user)
-#             if Role.Fournisseur in user.roles.values_list('id', flat=True):
-#                 Fournisseur.objects.create(user=user)
-#
-#             return redirect('user-profile')
-#         else:
-#             messages.error(request, 'Please correct the error below.')
-#     else:
-#         form = forms.CustomUserCreationForm()
-#         profile_form = forms.UserProfileCreationForm()
-#     return render(request, 'registration/signup.html', {'form': form, 'profile_form': profile_form})
 
 
 def home(request):
@@ -389,20 +368,65 @@ def signup(request):
             user.profile.tel = form.cleaned_data.get('tel')
             user.profile.sexe = form.cleaned_data.get('sexe')
             user.save()
-            #user.save_m2m()
+            roleChoisis = form.cleaned_data.get('roles')
+            role = roleChoisis.values_list('id', flat=True)
+            print("role : ")
+            list_role = list(role)
+            # user.save_m2m()
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=user.username, password=raw_password)
             login(request, user)
 
-            if Role.Client in user.roles.values_list('id', flat=True):
-                Client.objects.create(user=user)
-            if Role.Fournisseur in user.roles.values_list('id', flat=True):
-                Fournisseur.objects.create(user=user)
-                print("dakhal if fournisseur")
+            for item in list_role:
+                if item == 1:
+                    print("dakhal admin")
+                    my_group = Group.objects.get(name='Admin')
+                    print("my_group: " + str(my_group))
+                    my_group.user_set.add(user)
+
+                elif item == 2:
+                    print("dakhal if fournisseur")
+                    Fournisseur.objects.create(user=user)
+                    my_group = Group.objects.get(name='Fournisseur')
+                    print("my_group: " + str(my_group))
+                    my_group.user_set.add(user)
+
+                elif item == 3:
+                    print("dakhal if Client")
+                    Client.objects.create(user=user)
+                    my_group = Group.objects.get(name='Client')
+                    print("my_group: " + str(my_group))
+                    my_group.user_set.add(user)
+
             return redirect('home')
         else:
             print("dakhal error")
             messages.error(request, 'Please correct the error below.')
     else:
         form = SignUpForm()
+        form.helper = FormHelper()
+        form.helper.add_input(Submit('submit', 'Sign up', css_class='btn btn-success'))
     return render(request, 'registration/signup.html', {'form': form})
+
+
+class LoginView(TemplateView):
+    template_name = 'registration/login.html'
+
+    def post(self, request, **kwargs):
+        username = request.POST.get('username', False)
+        password = request.POST.get('password', False)
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            login(request, user)
+            return redirect('home')
+
+        return render(request, self.template_name)
+
+
+class LogoutView(TemplateView):
+    template_name = 'registration/logout.html'
+
+    def get(self, request, **kwargs):
+        logout(request)
+
+        return render(request, self.template_name)

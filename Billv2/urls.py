@@ -20,13 +20,17 @@ from django.views.generic import TemplateView
 
 from Billv2 import settings
 from bill import views
-from bill.views import ClientList, CreateClient, EditClient, DeleteClient, FactureList
-
+from bill.views import ClientList, CreateClient, EditClient, DeleteClient, FactureList, LoginView, LogoutView
 
 urlpatterns = [
     path('', views.home, name="home"),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path("select2/", include("django_select2.urls")),
     path('accounts/register/', views.signup, name="signup"),
+    path('accounts/login/', LoginView.as_view(), name="login"),
+    path('accounts/logout/', LogoutView.as_view(), name="logout"),
+    path('accounts/', include('django.contrib.auth.urls')),
+    #re_path(r'^accounts/login/$', LoginView.as_view(), name='login'),
+    #re_path(r'^accounts/logout/$', LogoutView.as_view(), name='logout'),
     path('admin/', admin.site.urls),
     re_path(r'^facture_detail/(?P<pk>\d+)/$', views.facture_detail_view, name='facture_detail'),
     re_path(r'^client_list/$', ClientList.as_view(), name='client_list'),
