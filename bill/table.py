@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from bill.models import Client, Facture, LigneFacture, Fournisseur, Commande, Panier,Produit
+from bill.models import Client, Facture, LigneFacture, Fournisseur, Commande, Produit, LigneCommande
 
 
 class ClientTable(tables.Table):
@@ -11,7 +11,8 @@ class ClientTable(tables.Table):
     class Meta:
         model = Client
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "user__last_name", "user__first_name", "user__profile__adresse", "user__profile__tel", "user__profile__sexe", "chiffre_affaire")
+        fields = ("id", "user__last_name", "user__first_name", "user__profile__adresse", "user__profile__tel",
+                  "user__profile__sexe", "chiffre_affaire")
 
 
 class FactureTable(tables.Table):
@@ -50,46 +51,61 @@ class ProduitTable(tables.Table):
          '<span> </span> <a href="{% url "produit_delete" record.id %}" class="btn btn-danger">Supprimer</a>'
     edit = tables.TemplateColumn(T1)
 
-    class Meta : 
+    class Meta:
         model = Produit
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "designation", "prix","fournis")
+        fields = ("id", "designation", "prix", "fournis")
 
-    
+
 class ChiffreFournisseurTab(tables.Table):
     class Meta:
         model = Facture
         template_name = "django_tables2/bootstrap.html"
-        fields = ("lignes__produit__fournis","lignes__produit__fournis__user__last_name",
-                "lignes__produit__fournis__user__first_name","chiffre_affaire")
+        fields = ("lignes__produit__fournis", "lignes__produit__fournis__user__last_name",
+                  "lignes__produit__fournis__user__first_name", "chiffre_affaire")
 
 
 class ChiffreClientTab(tables.Table):
     class Meta:
         model = Facture
         template_name = "django_tables2/bootstrap.html"
-        fields = ("client","client__user__last_name","client__user__first_name", "chiffre_affaire")
+        fields = ("client", "client__user__last_name", "client__user__first_name", "chiffre_affaire")
 
 
+class ProduitClientTable(tables.Table):
+    T1 = '<a href="{% url "addToPanier" record.id %}" class="btn btn-success">Ajouter au Panier</a>'
+    edit = tables.TemplateColumn(T1)
+
+    class Meta:
+        model = Produit
+        template_name = "django_tables2/bootstrap.html"
+        fields = ("id", "designation", "prix")
+
+
+class LigneCommandeTable(tables.Table):
+    action = '<a href="" class="btn btn-warning">Modifier</a>\
+                <a href="" class="btn btn-danger">Supprimer</a>'
+    edit = tables.TemplateColumn(action)
+
+    class Meta:
+        model = LigneCommande
+        template_name = "django_tables2/bootstrap4.html"
+        fields = ('produit__designation', 'produit__id', 'produit__prix', 'qte')
+
+
+class LigneCommandeTableAdmin(tables.Table):
+    class Meta:
+        model = LigneCommande
+        template_name = "django_tables2/bootstrap4.html"
+        fields = ('produit__designation', 'produit__id', 'produit__prix', 'qte')
+
+
+# chiffre d'affaire a ajouté
 class CommandeTable(tables.Table):
-    T1 = '<a href="{% url "commande_table_detail" record.id %}" class="btn btn-primary">Details</a>' \
-            '<span> </span> <a href="{% url "commande_table_detail" record.id %}" class="btn btn-warning">Valider</a>'
-    details = tables.TemplateColumn(T1)
-    
+    T1 = '<a href="{% url "commande_details" record.id %}" class="btn btn-success">Details</a>'
+    edit = tables.TemplateColumn(T1)
 
     class Meta:
         model = Commande
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "date")
-
-
-class PanierTable(tables.Table):
-    action = '<a href="{% url "panier_update" pk=record.id commande_pk=record.commande.id %}" class="btn btn-warning">Modifier</a>\
-            <a href="{% url "panier_delete" pk=record.id commande_pk=record.commande.id %}" class="btn btn-danger">Supprimer</a>'
-    edit = tables.TemplateColumn(action)
-
-    class Meta:
-        model = Panier
-        template_name = "django_tables2/bootstrap4.html"
-        fields = ('produit__designation', 'produit__id', 'produit__prix', 'qte')
-
+        fields = ("id", "client__user__username", "date")

@@ -21,19 +21,16 @@ from django.views.generic import TemplateView
 from Billv2 import settings
 from bill import views
 from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
-                         CommandeList,CreateFacture,CreateCommande,FactureListClient,CommandeListClient,LoginView, LogoutView,ValiderCommande
+                         CreateFacture,FactureListClient,LoginView, LogoutView
 
 
 
 urlpatterns = [
     path('', views.home, name="home"),
-    path("select2/", include("django_select2.urls")),
     path('accounts/register/', views.signup, name="signup"),
     path('accounts/login/', LoginView.as_view(), name="login"),
     path('accounts/logout/', LogoutView.as_view(), name="logout"),
     path('accounts/', include('django.contrib.auth.urls')),
-    #re_path(r'^accounts/login/$', LoginView.as_view(), name='login'),
-    #re_path(r'^accounts/logout/$', LogoutView.as_view(), name='logout'),
     path('admin/', admin.site.urls),
     re_path(r'^facture_detail/(?P<pk>\d+)/$', views.facture_detail_view, name='facture_detail'),
     re_path(r'^client_list/$', ClientList.as_view(), name='client_list'),
@@ -56,26 +53,25 @@ urlpatterns = [
             name='lignefacture_update'),
     re_path(r'^facture_update/(?P<pk>\d+)/$', views.FactureUpdate.as_view(), name='facture_update'),
     re_path(r'^facture_create/(?P<pk>\d+)/$', views.FactureCreate.as_view(), name='facture_create'),
-    re_path(r'^commande_list/$', CommandeList.as_view(), name='commande_list'),
-    re_path(r'^commande_list/(?P<pk>\d+)$', CommandeListClient.as_view(), name='commande_list'),
-    #re_path(r'^commande_list_confirmees/$', CommandeListConfirme.as_view(), name='commande_list_confirmees'),
-    re_path(r'^commande_create/$', CreateCommande.as_view(), name='commande_create'),
-    re_path(r'^commande_table_detail/(?P<pk>\d+)/$', views.CommandeDetailView.as_view(), name='commande_table_detail'),
-    re_path(r'^valider_commande/(?P<pk>\d+)/$',ValiderCommande.as_view(),name='valider_commande'),
-    re_path(r'^commande_table_create/(?P<commande_pk>\d+)/$', views.PanierCreateView.as_view(),
-            name='commande_table_create'),
-    re_path(r'^commande_update/(?P<pk>\d+)/$', views.CommandeUpdate.as_view(), name='commande_update'),
-    re_path(r'^panier_update/(?P<pk>\d+)/(?P<commande_pk>\d+)/$', views.PanierUpdateView.as_view(),
-            name='panier_update'),
-    re_path(r'^panier_delete/(?P<pk>\d+)/(?P<commande_pk>\d+)/$', views.PanierDeleteView.as_view(),
-            name='panier_delete'),
     re_path(r'^fournisseur_list/$', views.FournisseurList.as_view(), name='fournisseur_list'),
     re_path(r'^fournisseur_create/$', views.CreateFournisseur.as_view(), name='fournisseur_create'),
     re_path(r'^fournisseur_edit/(?P<pk>\d+)/$',views.EditFournisseur.as_view(), name='fournisseur_edit'),
     re_path(r'^fournisseur_delete/(?P<pk>\d+)/$', views.DeleteFournisseur.as_view(), name='fournisseur_delete'),
     re_path(r'^dashboard/$', views.DashboardView.as_view(), name='dashboard'),
+    re_path(r'^addToPanier/(?P<pk>\d+)/$', views.addToPanier, name='addToPanier'),
+    re_path(r'^produit_client_list/$', views.ProduitListClient.as_view(), name='produit_client_list'),
+    re_path(r'^panier_detail/(?P<pk>\d+)/$', views.PanierDetailView.as_view(), name='panier_detail'),
+    re_path(r'^commande_confirmation/(?P<pk>\d+)/$', views.confirmerCommande, name='commande_confirmation'),
+    re_path(r'^lignecommande_delete/(?P<pk>\d+)/(?P<facture_pk>\d+)/$', views.LigneCmdDelete.as_view(),
+            name='lignecmd_delete'),
+    re_path(r'^lignecommande_update/(?P<pk>\d+)/(?P<facture_pk>\d+)/$', views.LigneCmdUpdate.as_view(),
+            name='lignecmd_update'),
+    re_path(r'^commande_list/$', views.CommandeList.as_view(),name='commande_list'),
+    re_path(r'^commande_details/(?P<pk>\d+)/$', views.CommandeDetailsAdmin.as_view(),name='commande_details'),
+    re_path(r'^commande_validation/(?P<pk>\d+)/$', views.validerCommande,name='commande_validation'),
+
+
+
 ]
-
-
 if settings.DEBUG is True:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -2,15 +2,15 @@
 {% load bootstrap4 django_tables2 crispy_forms_tags %}
 {% block content%}
   <h2 class="text-center">Commande N° {{ commande.id }}</h2>
-  Client: {{ commande.client }}
-  <!-- on affiche les lignes de la facture -->
-  <table>
-  {% for ligne in facture.paniers.all %}
-  	<tr>
-  		<td>{{ ligne.produit.designation }}</td>
-  		<td>{{ ligne.produit.prix }}</td>
-  		<td>{{ ligne.qte }}</td>
-  	</tr>
-  {% endfor %}
-  </table>
+  <p class="text-center"> Client: {{ commande.client }} </p>
+  <br><br>
+    <hr>
+
+    <div class="container">
+  <!-- on affiche un bouton pour ajouter une ligne facture -->
+      <a href="{{ confirmer_url}}" class="btn btn-primary">{{ option }}</a>
+      <br><br>
+      <!-- on affiche les lignes de la facture -->
+        {% render_table table %}
+    </div>
 {% endblock %}
