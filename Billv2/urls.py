@@ -20,13 +20,12 @@ from django.views.generic import TemplateView
 
 from Billv2 import settings
 from bill import views
-from bill.views import ClientList, CreateClient, EditClient, DeleteClient,ProduitList,CreateProduit,EditProduit, DeleteProduit,FactureList,\
-                         CreateFacture,FactureListClient,LoginView, LogoutView
-
-
+from bill.views import ClientList, CreateClient, EditClient, DeleteClient, ProduitList, CreateProduit, EditProduit, \
+    DeleteProduit, FactureList, \
+    CreateFacture, FactureListClient, LoginView, LogoutView, HomeView
 
 urlpatterns = [
-    path('', views.home, name="home"),
+    path('', HomeView.as_view(), name="home"),
     path('accounts/register/', views.signup, name="signup"),
     path('accounts/login/', LoginView.as_view(), name="login"),
     path('accounts/logout/', LogoutView.as_view(), name="logout"),
@@ -42,7 +41,7 @@ urlpatterns = [
      re_path(r'^produit_edit/(?P<pk>\d+)/$', EditProduit.as_view(), name='produit_edit'),
      re_path(r'^produit_delete/(?P<pk>\d+)/$', DeleteProduit.as_view(), name='produit_delete'),
     re_path(r'^facture_list/$', FactureList.as_view(), name='facture_list'),
-    re_path(r'^facture_list/(?P<pk>\d+)/$', FactureListClient.as_view(), name='facture_list'),
+    re_path(r'^facture_list/(?P<pk>\d+)/$', FactureListClient.as_view(), name='facture_list_client'),
     re_path(r'^facture_create/$', CreateFacture.as_view(), name='facture_create'),
     re_path(r'^facture_table_detail/(?P<pk>\d+)/$', views.FactureDetailView.as_view(), name='facture_table_detail'),
     re_path(r'^facture_table_create/(?P<facture_pk>\d+)/$', views.LigneFactureCreateView.as_view(),

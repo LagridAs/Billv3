@@ -47,14 +47,20 @@ class FournisseurTable(tables.Table):
 
 
 class ProduitTable(tables.Table):
-    T1 = '<a href="{% url "produit_edit" record.id %}" class="btn btn-success">Modifier</a>' \
+    
+    T2 = '<img src="../media/{{record.photo}}" width="150px" height="100px" />'
+    photo = tables.TemplateColumn(T2)
+    T1 = '<p>{{record.prix}}</p>'
+    prix = tables.TemplateColumn(T1)
+    
+    T3 ='<a href="{% url "produit_edit" record.id %}" class="btn btn-success">Modifier</a>' \
          '<span> </span> <a href="{% url "produit_delete" record.id %}" class="btn btn-danger">Supprimer</a>'
-    edit = tables.TemplateColumn(T1)
+    edit = tables.TemplateColumn(T3)
 
     class Meta:
         model = Produit
         template_name = "django_tables2/bootstrap.html"
-        fields = ("id", "designation", "prix", "fournis")
+        fields = ("id", "designation", "prix")
 
 
 class ChiffreFournisseurTab(tables.Table):
@@ -75,7 +81,6 @@ class ChiffreClientTab(tables.Table):
 class ProduitClientTable(tables.Table):
     T1 = '<a href="{% url "addToPanier" record.id %}" class="btn btn-success">Ajouter au Panier</a>'
     edit = tables.TemplateColumn(T1)
-
     class Meta:
         model = Produit
         template_name = "django_tables2/bootstrap.html"

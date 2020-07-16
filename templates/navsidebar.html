@@ -1,21 +1,25 @@
-<ul class="nav list-group">
-	<li>
-    	<a class="list-group-item" href="{% url 'client_list' %}">Clients</a>
-	</li>
-	<li>
-    	<a class="list-group-item" href="{% url 'produit_list' %}">Produits</a>
-	</li>
-	<li>
-		<!--a class="list-group-item"  href="">Commandes</a-->
-	</li>
-	<li>
-		<!--a class="list-group-item"  href="">Facturation</a-->
-	</li>
-	<li>
-    	<a class="list-group-item" href="{% url 'fournisseur_list' %}">Fournisseurs</a>
-	</li>
-	<li>
-    	<a class="list-group-item" href="{% url 'dashboard' %}">dashboard</a>
-	</li>
-	
-</ul>
+
+<div class="card" style="width: 200px;">
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            <a  href="{% url 'client_list' %}">Clients</a>
+        </li>
+        <li class="list-group-item">
+            <a  href="{% url 'produit_list' %}">Produits</a>
+        </li>
+        <li class="list-group-item">
+            <a  href="{% url 'commande_list' %}">Commandes</a>
+        </li>
+        <li class="list-group-item">
+            <a  href="{% url 'facture_list' %}">Facturation</a>
+        </li>
+        <li class="list-group-item">
+            <a  href="{% url 'fournisseur_list' %}">Fournisseurs</a>
+        </li>
+        <li class="list-group-item">
+            <a  href="{% url 'dashboard' %}">dashboard</a>
+        </li>
+        
+    </ul>
+</div>
+

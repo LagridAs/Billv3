@@ -24,6 +24,7 @@ from bill.jcharts import JourChart, CategorieChart
 from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Produit, Categorie, Role, LigneCommande
 from django import utils
 
+
 # Create your views here.
 from bill.table import FactureTable, ClientTable, LigneFactureTable, FournisseurTable, \
     ChiffreFournisseurTab, \
@@ -225,7 +226,7 @@ class ProduitList(SingleTableView):
 class CreateProduit(CreateView):
     model = Produit
     template_name = 'create.html'
-    fields = ['designation', 'prix', 'fournis']
+    fields = ['designation','prix','fournis','photo']
 
     def get_form(self, form_class=None):
         form = super(CreateProduit, self).get_form(form_class)
@@ -247,7 +248,7 @@ class CreateProduit(CreateView):
 class EditProduit(UpdateView):
     model = Produit
     template_name = 'update.html'
-    fields = ['designation', 'prix', 'fournis']
+    fields = ['designation','prix','fournis','photo']
 
     def get_form(self, form_class=None):
         form = super(EditProduit, self).get_form(form_class)
@@ -471,14 +472,6 @@ class DashboardView(TemplateView):
         context['chart_categorie'] = CategorieChart()
         return context
 
-
-def home(request):
-    context = {
-        'produits': Produit.objects.all()
-    }
-    return render(request, 'index.html', context)
-
-
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -520,14 +513,12 @@ def signup(request):
                     print("my_group: " + str(my_group))
                     my_group.user_set.add(user)
 
-            return redirect('home')
+            return redirect('produit_list')
         else:
             print("dakhal error")
             messages.error(request, 'Please correct the error below.')
     else:
         form = SignUpForm()
-        form.helper = FormHelper()
-        form.helper.add_input(Submit('submit', 'Sign up', css_class='btn btn-success'))
     return render(request, 'registration/signup.html', {'form': form})
 
 
@@ -540,13 +531,16 @@ class LoginView(TemplateView):
         user = authenticate(username=username, password=password)
         if user is not None and user.is_active:
             login(request, user)
-            return redirect('home')
+            return redirect('produit_list')
 
         return render(request, self.template_name)
 
 
 class LogoutView(TemplateView):
     template_name = 'registration/logout.html'
+
+    def get_success_url(self):
+        return reverse('logout')
 
     def get(self, request, **kwargs):
         logout(request)
@@ -684,3 +678,10 @@ def validerCommande(request, pk):
     for item in commande.lignesCmd.all():
         LigneFacture.objects.create(produit=item.produit,qte=item.qte,facture=facture)
     return redirect('commande_list')
+
+class HomeView(TemplateView):
+    template_name = 'home.html'
+    def get(self, request, **kwargs):
+        logout(request)
+        return render(request, self.template_name)
+
