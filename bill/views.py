@@ -670,17 +670,18 @@ def addToPanier(request, pk):
     return redirect(request.META['HTTP_REFERER'])
 
 
-class ProduitListClient(SingleTableView):
+class ProduitListClient(SingleTableMixin,FilterView):
     model = Produit
     template_name = 'listproduit.html'
     table_class = ProduitClientTable
+    filterset_class = ProduitFilter
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        # data_filtred = ProduitFilter(self.request.GET, queryset=self.model.objects.all())
-        # data_filtredQs = data_filtred.qs
-        # context["object_list"] = data_filtredQs
-        context["object_list"] = self.model.objects.all()
+        data_filtred = ProduitFilter(self.request.GET, queryset=self.model.objects.all())
+        data_filtredQs = data_filtred.qs
+        context["object_list"] = data_filtredQs
+        #context["object_list"] = self.model.objects.all()
         context['object_table'] = self.table_class(context["object_list"])
         context['title'] = "Liste des produits"
         context['option'] = "Visualiser Panier"

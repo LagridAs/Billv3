@@ -29,8 +29,8 @@ class ProduitFilter(django_filters.FilterSet):
     designation = filters.CharFilter(label='designation', lookup_expr='icontains')
     categorie__intitule = filters.CharFilter(label='categorie', lookup_expr='icontains')
     prix = filters.NumberFilter(label='prix', lookup_expr='iexact')
-    prix__gt = filters.NumberFilter(label='prix >', lookup_expr='gt')
-    prix__lt = filters.NumberFilter(label='prix <', lookup_expr='lt')
+    prix__gt = django_filters.NumberFilter(field_name='prix', lookup_expr='gt',label='prix >')
+    prix__lt = django_filters.NumberFilter(field_name='prix', lookup_expr='lt',label='prix <')
 
     class Meta:
         models = Produit
