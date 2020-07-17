@@ -66,6 +66,11 @@ urlpatterns = [
     re_path(r'^lignecommande_update/(?P<pk>\d+)/(?P<commande_pk>\d+)/$', views.LigneCmdUpdate.as_view(),
             name='lignecmd_update'),
     re_path(r'^commande_listAdmin/$', views.CommandeList.as_view(),name='commande_listAdmin'),
+    re_path(r'^commande_listClient_Valide/(?P<pk>\d+)$', views.CommandeListClientVal.as_view(),
+            name='commande_listClient_valide'),
+    re_path(r'^commande_listClient_NonValide/(?P<pk>\d+)$', views.CommandeListClientNonVal.as_view(),
+            name='commande_listClient_non_valide'),
+
     re_path(r'^commande_details/(?P<pk>\d+)/$', views.CommandeDetailsAdmin.as_view(),name='commande_details'),
     re_path(r'^commande_validation/(?P<pk>\d+)/$', views.validerCommande,name='commande_validation'),
 

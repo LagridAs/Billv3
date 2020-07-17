@@ -140,7 +140,7 @@ class LigneFactureDeleteView(DeleteView):
 
 
 class ClientList(SingleTableMixin, FilterView, PermissionRequiredMixin):
-    permission_required = ('bill.add_client', 'bill.delete_client','bill.view_client','bill.change_client')
+    permission_required = ('bill.add_client', 'bill.delete_client', 'bill.view_client', 'bill.change_client')
     model = Client
     table_class = ClientTable
     template_name = 'list.html'
@@ -150,7 +150,8 @@ class ClientList(SingleTableMixin, FilterView, PermissionRequiredMixin):
         context = super().get_context_data(**kwargs)
         if self.request.user.has_perm('bill.add_client'):
             print("add yes ")
-        else:print("no")
+        else:
+            print("no")
         if self.request.user.has_perm('bill.change_client'):
             print("change yes")
         else:
@@ -179,7 +180,7 @@ class ClientList(SingleTableMixin, FilterView, PermissionRequiredMixin):
         return context
 
 
-class CreateClient(SuccessMessageMixin, CreateView,PermissionRequiredMixin):
+class CreateClient(SuccessMessageMixin, CreateView, PermissionRequiredMixin):
     model = Client
     template_name = 'create.html'
     fields = ['user']
@@ -202,13 +203,12 @@ class CreateClient(SuccessMessageMixin, CreateView,PermissionRequiredMixin):
         return context
 
 
-class EditClient(SuccessMessageMixin, UpdateView,PermissionRequiredMixin):
+class EditClient(SuccessMessageMixin, UpdateView, PermissionRequiredMixin):
     model = Client
     template_name = 'update.html'
     fields = ['nom', 'prenom', 'adresse', 'tel', 'sexe']
     success_message = "Le client a été mis à jour avec succès"
     permission_required = 'bill.change_client'
-
 
     def get_form(self, form_class=None):
         messages.warning(self.request, "Attention, vous allez modifier les details du client")
@@ -226,11 +226,10 @@ class EditClient(SuccessMessageMixin, UpdateView,PermissionRequiredMixin):
         return context
 
 
-class DeleteClient(DeleteView,PermissionRequiredMixin):
+class DeleteClient(DeleteView, PermissionRequiredMixin):
     model = Client
     template_name = 'delete.html'
     permission_required = 'bill.delete_client'
-
 
     success_message = "le client a été supprimé avec succes"
 
@@ -372,6 +371,35 @@ class FactureListClient(SingleTableView):
         context['ajouter_url'] = reverse('facture_create')
         context['option'] = 'Ajouter facture'
         context['object_name'] = "Facture"
+        return context
+
+
+class CommandeListClientVal(SingleTableView):
+    model = Commande
+    template_name = 'list.html'
+    table_class = CommandeTable
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object_list'] = self.model.objects.filter(client_id=self.kwargs.get('pk'), panier=False, validee=True)
+        context['object_table'] = self.table_class(context['object_list'])
+        context['title'] = 'Liste des Commandes validées'
+        context['object_name'] = "Commande"
+        return context
+
+
+class CommandeListClientNonVal(SingleTableView):
+    model = Commande
+    template_name = 'list.html'
+    table_class = CommandeTable
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['object_list'] = self.model.objects.filter(client_id=self.kwargs.get('pk'), panier=False, validee=False)
+        context['object_table'] = self.table_class(context['object_list'])
+        context['title'] = 'Liste des Commandes non validées'
+        context['object_name'] = "Commande"
         return context
 
 
@@ -596,8 +624,12 @@ class LoginView(TemplateView):
         user = authenticate(username=username, password=password)
         if user is not None and user.is_active:
             login(request, user)
-            return redirect('produit_list')
-
+            group_list = user.groups.values_list('name', flat=True)  # QuerySet Object
+            l_as_list = list(group_list)
+            if l_as_list[0]== "Admin" :
+                return redirect('produit_list')
+            elif l_as_list[0]== "Client":
+                return  redirect('produit_client_list')
         return render(request, self.template_name)
 
 
