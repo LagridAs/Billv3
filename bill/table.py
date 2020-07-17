@@ -89,9 +89,12 @@ class ChiffreClientTab(tables.Table):
 
 
 class ProduitClientTable(tables.Table):
+    T2 = '<img src="../media/{{record.photo}}" width="150px" height="100px" />'
+    photo = tables.TemplateColumn(T2)
     T1 = '<a href="{% url "addToPanier" record.id %}" class="btn btn-success" id="ajouter">Ajouter au Panier</a>'
     edit = tables.TemplateColumn(T1)
     categorie__intitule = tables.Column(verbose_name= 'Categorie' )
+
 
     class Meta:
         model = Produit

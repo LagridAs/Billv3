@@ -51,3 +51,19 @@ class FactureFilter(django_filters.FilterSet):
     class Meta:
         model = Facture
         fields = ['client']
+
+
+class CommandeFilterClient(django_filters.FilterSet):
+    date = DateRangeFilter(label='Date_Range')
+
+    class Meta:
+        model = Commande
+        fields = []
+
+
+class FactureFilterClient(django_filters.FilterSet):
+    date = DateRangeFilter(label='Date_Range')
+
+    class Meta:
+        model = Facture
+        fields = []

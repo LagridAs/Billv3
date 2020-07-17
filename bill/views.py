@@ -18,7 +18,8 @@ from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
 
-from bill.filter import ClientFilter, FournisseurFilter, ProduitFilter, CommandeFilter, FactureFilter
+from bill.filter import ClientFilter, FournisseurFilter, ProduitFilter, CommandeFilter, FactureFilter, \
+    CommandeFilterClient, FactureFilterClient
 from bill.forms import SignUpForm, LigneCommandeForm
 from bill.jcharts import JourChart, CategorieChart
 
@@ -353,14 +354,17 @@ class FactureList(SingleTableMixin, FilterView):
         return context
 
 
-class FactureListClient(SingleTableView):
+class FactureListClient(SingleTableMixin,FilterView):
     model = Facture
     template_name = 'list.html'
     table_class = FactureTable
+    filterset_class = FactureFilterClient
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = self.model.objects.filter(client_id=self.kwargs.get('pk')).annotate(total=Sum(
+        data_filtred = FactureFilterClient(self.request.GET, queryset=self.model.objects.filter(client_id=self.kwargs.get('pk')))
+        data_filtredQs = data_filtred.qs
+        context['object_list'] = data_filtredQs.annotate(total=Sum(
             ExpressionWrapper(
                 F('lignes__qte') * F('lignes__produit__prix'),
                 output_field=fields.FloatField()
@@ -368,35 +372,41 @@ class FactureListClient(SingleTableView):
         ))
         context['object_table'] = self.table_class(context['object_list'])
         context['title'] = 'Liste des factures'
-        context['ajouter_url'] = reverse('facture_create')
-        context['option'] = 'Ajouter facture'
         context['object_name'] = "Facture"
         return context
 
 
-class CommandeListClientVal(SingleTableView):
+class CommandeListClientVal(SingleTableMixin,FilterView):
     model = Commande
     template_name = 'list.html'
     table_class = CommandeTable
+    filterset_class = CommandeFilterClient
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = self.model.objects.filter(client_id=self.kwargs.get('pk'), panier=False, validee=True)
+        data_filtred = CommandeFilterClient(self.request.GET, queryset=self.model.objects.filter(client_id=self.kwargs.get('pk'), panier=False, validee=True))
+        data_filtredQs = data_filtred.qs
+        context['object_list'] = data_filtredQs
         context['object_table'] = self.table_class(context['object_list'])
         context['title'] = 'Liste des Commandes validées'
         context['object_name'] = "Commande"
         return context
 
 
-class CommandeListClientNonVal(SingleTableView):
+class CommandeListClientNonVal(SingleTableMixin,FilterView):
     model = Commande
     template_name = 'list.html'
     table_class = CommandeTable
+    filterset_class = CommandeFilterClient
 
-    def get_context_data(self, **kwargs):
+
+    def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context['object_list'] = self.model.objects.filter(client_id=self.kwargs.get('pk'), panier=False, validee=False)
+        data_filtred = CommandeFilterClient(self.request.GET,
+                                      queryset=self.model.objects.filter(client_id=self.kwargs.get('pk'), panier=False,
+                                                                         validee=False))
+        data_filtredQs = data_filtred.qs
+        context['object_list'] = data_filtredQs
         context['object_table'] = self.table_class(context['object_list'])
         context['title'] = 'Liste des Commandes non validées'
         context['object_name'] = "Commande"
@@ -702,8 +712,12 @@ class PanierDetailView(DetailView):
 
 
 def confirmerCommande(request, pk):
-    Commande.objects.filter(id=pk).update(panier=False)
-    return redirect('produit_client_list')
+    if request.method == 'POST':
+        Commande.objects.filter(id=pk).update(panier=False)
+        messages.success(request, 'La commande a été confirmée avec succès')
+        return redirect('produit_client_list')
+    else:
+        return redirect(request.META['HTTP_REFERER'])
 
 
 class LigneCmdUpdate(SuccessMessageMixin, UpdateView):
@@ -787,7 +801,9 @@ def validerCommande(request, pk):
         for item in commande.lignesCmd.all():
             LigneFacture.objects.create(produit=item.produit, qte=item.qte, facture=facture)
         messages.success(request, 'facture a été créée avec succès')
-    return redirect('commande_listAdmin')
+        return redirect('commande_listAdmin')
+    else:
+        return redirect(request.META['HTTP_REFERER'])
 
 
 class HomeView(TemplateView):
