@@ -8,7 +8,11 @@
 
     <div class="container">
   <!-- on affiche un bouton pour ajouter une ligne facture -->
-      <a href="{{ confirmer_url}}" class="btn btn-primary">{{ option }}</a>
+        <form method="post" action="{{ confirmer_url}}">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-primary" value="{{ option }}"/>
+        </form>
+{#      <a href="{{ confirmer_url}}" class="btn btn-primary">{{ option }}</a>#}
       <br><br>
       <!-- on affiche les lignes de la facture -->
         {% render_table table %}

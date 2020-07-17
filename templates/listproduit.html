@@ -20,3 +20,13 @@
         {% render_table object_table %}
     </div>
 {% endblock %}
+{% block js_scripts %}
+    <script>
+        $(document).ready(function(){
+            $("#ajouter").click(function(){
+                $("#ajouter").hide();
+            });
+            });
+    </script>
+{% endblock %}
+

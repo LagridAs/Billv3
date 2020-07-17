@@ -49,7 +49,9 @@ INSTALLED_APPS = [
     'jchart',
     'django_filters',
 ]
-
+BOOTSTRAP4 = {
+    'include_jquery': True,
+}
 
 
 MIDDLEWARE = [
@@ -135,9 +137,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-BOOTSTRAP4 = {
-    'include_jquery': True,
-}
+
+
 
 AUTH_USER_MODEL= 'bill.UserInstallment'
 

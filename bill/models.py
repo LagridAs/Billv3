@@ -83,7 +83,7 @@ class Produit(models.Model):
     photo = models.ImageField(upload_to='./', blank=True, null=True)
 
     def __str__(self):
-        return self.designation
+        return str(self.designation)
 
 
 # Modele commande
@@ -94,7 +94,7 @@ class Commande(models.Model):
     validee = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.client)
+        return str(self.id)
 
     def get_absolute_url(self):
         return reverse('commande_detail', kwargs={'pk': self.id})

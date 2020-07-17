@@ -4,6 +4,7 @@ from bootstrap_datepicker_plus import DatePickerInput
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Button, HTML
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import ExpressionWrapper, F, FloatField, fields, Sum
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
@@ -17,13 +18,12 @@ from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
 
-from bill.filter import ClientFilter, FournisseurFilter
-from bill.forms import SignUpForm
+from bill.filter import ClientFilter, FournisseurFilter, ProduitFilter, CommandeFilter, FactureFilter
+from bill.forms import SignUpForm, LigneCommandeForm
 from bill.jcharts import JourChart, CategorieChart
 
 from bill.models import Facture, Client, LigneFacture, Fournisseur, Commande, Produit, Categorie, Role, LigneCommande
 from django import utils
-
 
 # Create your views here.
 from bill.table import FactureTable, ClientTable, LigneFactureTable, FournisseurTable, \
@@ -38,7 +38,7 @@ def facture_detail_view(request, pk):
     return render(request, 'facture_detail.html', context)
 
 
-class FactureUpdate(UpdateView):
+class FactureUpdate(SuccessMessageMixin, UpdateView):
     model = Facture
     fields = ['client', 'date']
     template_name = 'update.html'
@@ -73,10 +73,11 @@ class FactureDetailView(DetailView):
         return context
 
 
-class LigneFactureCreateView(CreateView):
+class LigneFactureCreateView(SuccessMessageMixin, CreateView):
     model = LigneFacture
     template_name = 'create.html'
     fields = ['facture', 'produit', 'qte']
+    success_message = "Ligne de facture a été créée avec succes"
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -95,12 +96,14 @@ class LigneFactureCreateView(CreateView):
         return context
 
 
-class LigneFactureUpdateView(UpdateView):
+class LigneFactureUpdateView(SuccessMessageMixin, UpdateView):
     model = LigneFacture
     template_name = 'update.html'
     fields = ['facture', 'produit', 'qte']
+    success_message = "La facture a été mise à jour avec succès"
 
     def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier la facture")
         form = super().get_form(form_class)
         form.helper = FormHelper()
 
@@ -121,6 +124,12 @@ class LigneFactureDeleteView(DeleteView):
     model = LigneFacture
     template_name = 'delete.html'
 
+    success_message = "la ligne facture a été supprimé avec succes"
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super(LigneFactureDeleteView, self).delete(request, *args, **kwargs)
+
     def get_success_url(self):
         return reverse('facture_table_detail', kwargs={'pk': self.kwargs.get('facture_pk')})
 
@@ -130,7 +139,8 @@ class LigneFactureDeleteView(DeleteView):
         return context
 
 
-class ClientList(SingleTableMixin, FilterView):
+class ClientList(SingleTableMixin, FilterView, PermissionRequiredMixin):
+    permission_required = ('bill.add_client', 'bill.delete_client','bill.view_client','bill.change_client')
     model = Client
     table_class = ClientTable
     template_name = 'list.html'
@@ -138,6 +148,21 @@ class ClientList(SingleTableMixin, FilterView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+        if self.request.user.has_perm('bill.add_client'):
+            print("add yes ")
+        else:print("no")
+        if self.request.user.has_perm('bill.change_client'):
+            print("change yes")
+        else:
+            print("no")
+        if self.request.user.has_perm('bill.delete_client'):
+            print("delete client")
+        else:
+            print("no")
+        if self.request.user.has_perm('bill.view_client'):
+            print("view yes ")
+        else:
+            print("no")
         data_filtred = ClientFilter(self.request.GET, queryset=self.model.objects.all())
         data_filtredQs = data_filtred.qs
         context["object_list"] = data_filtredQs.annotate(chiffre_affaire=Sum(
@@ -154,10 +179,13 @@ class ClientList(SingleTableMixin, FilterView):
         return context
 
 
-class CreateClient(CreateView):
+class CreateClient(SuccessMessageMixin, CreateView,PermissionRequiredMixin):
     model = Client
     template_name = 'create.html'
     fields = ['user']
+    permission_required = 'bill.add_client'
+
+    success_message = "Le client a été créé avec succes"
 
     def get_form(self, form_class=None):
         form = super(CreateClient, self).get_form(form_class)
@@ -174,12 +202,16 @@ class CreateClient(CreateView):
         return context
 
 
-class EditClient(UpdateView):
+class EditClient(SuccessMessageMixin, UpdateView,PermissionRequiredMixin):
     model = Client
     template_name = 'update.html'
     fields = ['nom', 'prenom', 'adresse', 'tel', 'sexe']
+    success_message = "Le client a été mis à jour avec succès"
+    permission_required = 'bill.change_client'
+
 
     def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier les details du client")
         form = super(EditClient, self).get_form(form_class)
         form.helper = FormHelper()
         form.helper.add_input(Submit('submit', 'Enregister', css_class='btn btn-success'))
@@ -194,9 +226,17 @@ class EditClient(UpdateView):
         return context
 
 
-class DeleteClient(DeleteView):
+class DeleteClient(DeleteView,PermissionRequiredMixin):
     model = Client
     template_name = 'delete.html'
+    permission_required = 'bill.delete_client'
+
+
+    success_message = "le client a été supprimé avec succes"
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super(DeleteClient, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('client_list')
@@ -214,7 +254,9 @@ class ProduitList(SingleTableView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["object_list"] = self.model.objects.all()
+        data_filtred = ProduitFilter(self.request.GET, queryset=self.model.objects.all())
+        data_filtredQs = data_filtred.qs
+        context["object_list"] = data_filtredQs
         context['object_table'] = self.table_class(context["object_list"])
         context['title'] = "Liste des produits"
         context['option'] = "Ajouter produit"
@@ -223,10 +265,11 @@ class ProduitList(SingleTableView):
         return context
 
 
-class CreateProduit(CreateView):
+class CreateProduit(SuccessMessageMixin, CreateView):
     model = Produit
     template_name = 'create.html'
-    fields = ['designation','prix','fournis','photo']
+    fields = ['designation', 'prix', 'fournis', 'photo']
+    success_message = "Le produit a été créé avec succes"
 
     def get_form(self, form_class=None):
         form = super(CreateProduit, self).get_form(form_class)
@@ -245,12 +288,14 @@ class CreateProduit(CreateView):
         return context
 
 
-class EditProduit(UpdateView):
+class EditProduit(SuccessMessageMixin, UpdateView):
     model = Produit
     template_name = 'update.html'
-    fields = ['designation','prix','fournis','photo']
+    fields = ['designation', 'prix', 'fournis', 'photo']
+    success_message = "le produit a été mis à jour avec succès"
 
     def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier les details du produit")
         form = super(EditProduit, self).get_form(form_class)
         form.helper = FormHelper()
         form.fields['fournis'] = forms.ModelChoiceField(queryset=Fournisseur.objects,
@@ -270,6 +315,11 @@ class EditProduit(UpdateView):
 class DeleteProduit(DeleteView):
     model = Produit
     template_name = 'delete.html'
+    success_message = "le produit a été supprimé avec succes"
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super(DeleteProduit, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('produit_list')
@@ -280,14 +330,17 @@ class DeleteProduit(DeleteView):
         return context
 
 
-class FactureList(SingleTableView):
+class FactureList(SingleTableMixin, FilterView):
     model = Facture
     template_name = 'list.html'
     table_class = FactureTable
+    filterset_class = FactureFilter
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = self.model.objects.all().annotate(total=Sum(
+        data_filtred = FactureFilter(self.request.GET, queryset=self.model.objects.all())
+        data_filtredQs = data_filtred.qs
+        context['object_list'] = data_filtredQs.annotate(total=Sum(
             ExpressionWrapper(
                 F('lignes__qte') * F('lignes__produit__prix'),
                 output_field=fields.FloatField()
@@ -322,10 +375,11 @@ class FactureListClient(SingleTableView):
         return context
 
 
-class FactureCreate(CreateView):
+class FactureCreate(SuccessMessageMixin, CreateView):
     model = Facture
     template_name = 'create.html'
     fields = ['client', 'date']
+    success_message = "La facture a été créée avec succes"
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -345,10 +399,11 @@ class FactureCreate(CreateView):
         return context
 
 
-class CreateFacture(CreateView):
+class CreateFacture(SuccessMessageMixin, CreateView):
     model = Facture
     template_name = 'create.html'
     fields = ['client', 'date']
+    success_message = "La facture a été créée avec succes"
 
     def get_form(self, form_class=None):
         form = super(CreateFacture, self).get_form(form_class)
@@ -387,10 +442,11 @@ class FournisseurList(SingleTableMixin, FilterView):
         return context
 
 
-class CreateFournisseur(CreateView):
+class CreateFournisseur(SuccessMessageMixin, CreateView):
     model = Fournisseur
     template_name = 'create.html'
     fields = ['user']
+    success_message = "Le fournisseur a été créé avec succes"
 
     def get_form(self, form_class=None):
         form = super(CreateFournisseur, self).get_form(form_class)
@@ -407,12 +463,14 @@ class CreateFournisseur(CreateView):
         return context
 
 
-class EditFournisseur(UpdateView):
+class EditFournisseur(SuccessMessageMixin, UpdateView):
     model = Fournisseur
     template_name = 'update.html'
     fields = ['nom', 'prenom']
+    success_message = "le fournisseur a été mis à jour avec succès"
 
     def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier les details du fournisseur")
         form = super(EditFournisseur, self).get_form(form_class)
         form.helper = FormHelper()
         form.helper.add_input(Submit('submit', 'Enregister', css_class='btn btn-success'))
@@ -430,6 +488,12 @@ class EditFournisseur(UpdateView):
 class DeleteFournisseur(DeleteView):
     model = Fournisseur
     template_name = 'delete.html'
+
+    success_message = "le fournisseur a été supprimé avec succes"
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super(DeleteFournisseur, self).delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('fournisseur_list')
@@ -471,6 +535,7 @@ class DashboardView(TemplateView):
         context['chart_jour'] = JourChart()
         context['chart_categorie'] = CategorieChart()
         return context
+
 
 def signup(request):
     if request.method == 'POST':
@@ -570,6 +635,9 @@ class ProduitListClient(SingleTableView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+        # data_filtred = ProduitFilter(self.request.GET, queryset=self.model.objects.all())
+        # data_filtredQs = data_filtred.qs
+        # context["object_list"] = data_filtredQs
         context["object_list"] = self.model.objects.all()
         context['object_table'] = self.table_class(context["object_list"])
         context['title'] = "Liste des produits"
@@ -606,22 +674,21 @@ def confirmerCommande(request, pk):
     return redirect('produit_client_list')
 
 
-class LigneCmdUpdate(UpdateView):
+class LigneCmdUpdate(SuccessMessageMixin, UpdateView):
     model = LigneCommande
     template_name = 'update.html'
-
-    fields = ['commande', 'produit', 'qte']
+    fields = ['produit', 'qte']
+    success_message = "le panier a été mis à jour avec succès"
 
     def get_form(self, form_class=None):
+        messages.warning(self.request, "Attention, vous allez modifier le panier")
         form = super().get_form(form_class)
         form.helper = FormHelper()
-
-        form.fields['commande'] = forms.ModelChoiceField(
-            queryset=Commande.objects.filter(id=self.kwargs.get('commande_pk')), initial=0)
+        form.fields['produit'] = forms.ModelChoiceField(
+            queryset=Produit.objects.all(), initial=0)
         form.helper.add_input(Submit('submit', 'Modifier', css_class='btn-primary'))
         form.helper.add_input(Button('cancel', 'Annuler', css_class='btn-secondary', onclick="window.history.back()"))
-        self.success_url = reverse('commande_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
-
+        self.success_url = reverse('panier_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
         return form
 
 
@@ -629,8 +696,14 @@ class LigneCmdDelete(DeleteView):
     model = LigneCommande
     template_name = 'delete.html'
 
+    success_message = "la ligne de commande a été supprimé avec succes"
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super(LigneCmdDelete, self).delete(request, *args, **kwargs)
+
     def get_success_url(self):
-        return reverse('commande_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
+        return reverse('panier_detail', kwargs={'pk': self.kwargs.get('commande_pk')})
 
     def get_context_data(self, **kwargs):
         context = super(LigneCmdDelete, self).get_context_data(**kwargs)
@@ -640,14 +713,17 @@ class LigneCmdDelete(DeleteView):
 
 # pour les clients et les admis ajouter un if else et 2 temp et la table
 
-class CommandeList(SingleTableView):
+class CommandeList(SingleTableMixin, FilterView):
     model = Commande
     template_name = 'list.html'
     table_class = CommandeTable
+    filterset_class = CommandeFilter
 
-    def get_context_data(self, **kwargs):
-        context = super(CommandeList, self).get_context_data()
-        context['object_list'] = self.model.objects.filter(panier=False, validee=False)
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        data_filtred = CommandeFilter(self.request.GET, queryset=self.model.objects.filter(validee=False, panier=False))
+        data_filtredQs = data_filtred.qs
+        context["object_list"] = data_filtredQs
         context['object_table'] = self.table_class(context['object_list'])
         context['title'] = 'Liste des commandes non facturées'
         context['object_name'] = 'Commandes'
@@ -670,18 +746,21 @@ class CommandeDetailsAdmin(DetailView):
 
 
 def validerCommande(request, pk):
-    # valide la commande
-    Commande.objects.filter(id=pk).update(validee=True)
-    #creation d'une facture
-    commande = Commande.objects.get(id=pk)
-    facture = Facture.objects.create(client=Client.objects.get(id=commande.client.id),commande=commande)
-    for item in commande.lignesCmd.all():
-        LigneFacture.objects.create(produit=item.produit,qte=item.qte,facture=facture)
-    return redirect('commande_list')
+    if request.method == 'POST':
+        # valide la commande
+        Commande.objects.filter(id=pk).update(validee=True)
+        # creation d'une facture
+        commande = Commande.objects.get(id=pk)
+        facture = Facture.objects.create(client=Client.objects.get(id=commande.client.id), commande=commande)
+        for item in commande.lignesCmd.all():
+            LigneFacture.objects.create(produit=item.produit, qte=item.qte, facture=facture)
+        messages.success(request, 'facture a été créée avec succès')
+    return redirect('commande_listAdmin')
+
 
 class HomeView(TemplateView):
     template_name = 'home.html'
+
     def get(self, request, **kwargs):
         logout(request)
         return render(request, self.template_name)
-

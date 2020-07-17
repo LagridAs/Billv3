@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
-{% load bootstrap4 django_tables2 crispy_forms_tags %}
+{% load django_tables2 %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
 {% block content%}
   <h2 class="text-center">{{ title }}</h2>
   <hr>
@@ -7,7 +11,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-6">
-	        {% crispy form %}
+	            {% crispy form %}
             </div>
         </div>
   </div>
