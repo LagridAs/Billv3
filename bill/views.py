@@ -247,10 +247,11 @@ class DeleteClient(DeleteView, PermissionRequiredMixin):
         return context
 
 
-class ProduitList(SingleTableView):
+class ProduitList(SingleTableMixin,FilterView):
     model = Produit
     table_class = ProduitTable
     template_name = 'list.html'
+    filterset_class = ProduitFilter
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
