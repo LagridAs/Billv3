@@ -1,0 +1,18 @@
+<div class="card" style="width: 200px;">
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            <a  href="{% url 'produit_client_list' %}">Produits</a>
+        </li>
+        <li class="list-group-item">
+            <a  href="{% url 'facture_list_client' user.id %}">Facturation</a>
+        </li>
+        <li class="list-group-item">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Commandes</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="{% url 'commande_listClient_valide' user.id %}">Validées</a>
+            <a class="dropdown-item" href="{% url 'commande_listClient_non_valide' user.id %}">Non validées</a>
+          </div>
+        </li>
+
+    </ul>
+</div>

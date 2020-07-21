@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load bootstrap4 django_tables2 crispy_forms_tags %}
+{% block content%}
+    <h2 class="text-center">{{ title }}</h2>
+    <hr>
+    
+
+    <div class="container">
+      <a href= "{{ confirmer_url }}" class="btn btn-info">{{ option }}</a>
+        <br/><br/>
+        <div>
+            {% if filter %}
+            <form action="" method="get" class="form form-inline">
+                {% bootstrap_form filter.form layout='inline' %}
+                {% bootstrap_button 'filter' %}
+            </form>
+            {% endif %}
+        </div>
+        <br/><br/>
+        {% render_table object_table %}
+    </div>
+{% endblock %}
+{% block js_scripts %}
+{% endblock %}
+

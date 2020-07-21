@@ -7,7 +7,14 @@
 	{% bootstrap_css %}         {# Embed Bootstrap CSS #}
 	{% bootstrap_javascript jquery='full' %}  {# Embed Bootstrap JS+jQuery #}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script>
+			//$(document).ready(function(){
+			//	$("#ajouter").click(function(){
+			//		$("#ajouter").hide();
+			//	});
+			//	});
+		</script>
   </head>
   <style type="text/css">
   	#sidebar {
@@ -31,9 +38,6 @@
 	h1.a {
   		line-height: 0.01;
 	}
-
-
-	
   </style>
  <body>
 	<div class="container-fluid">
@@ -47,13 +51,24 @@
 				<img src="../media/banniere.png" alt="banniere" width="100%" height = "150px"/>
 		</header>-->
 		<br>
+        <div class="row">
+            <div class="col-lg-12">
+                <p>
+                    Bienvenue <strong>{{ user }}</strong>
+                </p>
+            </div>
+        </div>
 
 		<div class="row">
 						
 			<div id="sidebar-wrapper" class="col-lg-2">
 				<div id="sidebar">
 				{% block sidebar %}
-					{% include  './navsidebar.html' %}
+                    {% if user.groups.all.0.name == "Admin" %}
+					    {% include  './navsidebarAdmin.html' %}
+                    {% elif user.groups.all.0.name == "Client" %}
+					    {% include  './navsidebarClient.html' %}
+                    {% endif %}
 				{% endblock %}
 					</div>
 				</div>
@@ -80,5 +95,9 @@
 		</small></small></footer>
 		
 		</div>
+    {% block js_scripts %}
+
+    {% endblock %}
 	</body>
 </html>
+

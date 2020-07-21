@@ -1,9 +1,11 @@
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import ModelForm
 
 import bill
 from django import forms
 
 from bill import models
+from bill.models import LigneCommande
 
 
 class SignUpForm(UserCreationForm):
@@ -18,3 +20,9 @@ class SignUpForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = models.UserInstallment
         fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2','roles','adresse','tel','sexe']
+
+
+class LigneCommandeForm(ModelForm):
+    class Meta:
+        model=LigneCommande
+        fields= ['produit','qte']

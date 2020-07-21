@@ -6,8 +6,10 @@
     
 
     <div class="container">
+    {% if ajouter_url  %}
       <a href= "{{ ajouter_url }}" class="btn btn-info">{{ option }}</a>
-        
+    {% endif %}
+        <br/><br/>
         <div>
             {% if filter %}
             <form action="" method="get" class="form form-inline">
