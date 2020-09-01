@@ -24,7 +24,7 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'z07i1ddtscm@7k=n241y-kjzok20%d_8#0+b&%qsx#hhezl1l='
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -149,6 +149,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'ga_lagrid@esi.dz'
-EMAIL_HOST_PASSWORD = 'rabirhamniberahmatek9'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 
